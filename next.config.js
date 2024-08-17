@@ -12,17 +12,32 @@ const nextConfig = {
         destination: '/api/auth/register',
         permanent: true,
       },
-    ]
+    ];
   },
 
-  webpack: (
-    config,
-    { buildId, dev, isServer, defaultLoaders, webpack }
-  ) => {
-    config.resolve.alias.canvas = false
-    config.resolve.alias.encoding = false
-    return config
+  images: {
+    domains: ['gravatar.com'], // Add gravatar.com here
   },
-}
 
-module.exports = nextConfig
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Resolve aliases
+    config.resolve.alias.canvas = false;
+    config.resolve.alias.encoding = false;
+
+    if (!isServer) {
+      config.externals.push({
+        canvas: 'commonjs canvas',
+      });
+    }
+
+    // Add rule for .node files
+    config.module.rules.push({
+      test: /\.node$/,
+      use: 'node-loader',
+    });
+
+    return config;
+  },
+};
+
+module.exports = nextConfig;

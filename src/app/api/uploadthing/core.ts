@@ -49,17 +49,26 @@ const onUploadComplete = async ({
       key: file.key,
       name: file.name,
       userId: metadata.userId,
-      url: `https://uploadthing-prod.s3.us-west-2.amazonaws.com/${file.key}`,
+      url: `https://utfs.io/f/${file.key}`,
       uploadStatus: 'PROCESSING',
     },
   })
 
   try {
+    
     const response = await fetch(
-      `https://uploadthing-prod.s3.us-west-2.amazonaws.com/${file.key}`
+      `https://utfs.io/f/${file.key}`
     )
+    const contentType = response.headers.get('Content-Type');
+    console.log(contentType); // Should be 'application/pdf'
+    if (contentType !== 'application/pdf') {
+      throw new Error(`Expected 'application/pdf', but got '${contentType}'`);
+    }
 
     const blob = await response.blob()
+    console.log(blob);
+    const arrayBuffer = await blob.arrayBuffer();
+    console.log(new Uint8Array(arrayBuffer.slice(0, 20))); 
 
     const loader = new PDFLoader(blob)
 
@@ -118,6 +127,8 @@ const onUploadComplete = async ({
       },
     })
   } catch (err) {
+    console.error('Error during PDF processing:', err);
+    console.log("dfvfvfvdfvdsf")
     await db.file.update({
       data: {
         uploadStatus: 'FAILED',
